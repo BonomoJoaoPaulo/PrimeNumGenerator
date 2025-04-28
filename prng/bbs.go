@@ -1,3 +1,6 @@
+// Esse arquivo traz a implementacao do algoritmo Blum Blum Shub
+//  para gerar numeros pseudoaleatorios grandes.
+
 package prng
 
 import (
@@ -17,22 +20,22 @@ type BlumBlumShub struct {
 
 // NewBBS cria um novo gerador BBS
 func NewBBS(bitSize int) *BlumBlumShub {
-	// Calcular quantos bits cada primo deve ter (aproximadamente metade do tamanho total)
+	// Calcula quantos bits cada primo deve ter (aproximadamente metade do tamanho total)
 	primeBits := (bitSize + 1) / 2
 
-	// Gerar primos p e q, ambos congruentes a 3 mod 4
+	// Gera os primos p e q, ambos congruentes a 3 mod 4
 	p := generateSafePrime(primeBits)
 	q := generateSafePrime(primeBits)
 
-	// Garantir que p != q
+	// Garante que p != q
 	for p.Cmp(q) == 0 {
 		q = generateSafePrime(primeBits)
 	}
 
-	// Calcular n = p * q
+	// Calcula n = p * q
 	n := new(big.Int).Mul(p, q)
 
-	// Gerar um valor inicial (semente) x_0 que seja coprimo com n
+	// Gera um valor inicial (semente) x_0 que seja coprimo com n
 	seed := generateSeed(n)
 
 	bbs := &BlumBlumShub{
@@ -46,57 +49,56 @@ func NewBBS(bitSize int) *BlumBlumShub {
 	return bbs
 }
 
-// generateSafePrime gera um número primo p tal que p ≡ 3 (mod 4)
+// generateSafePrime gera um numero primo p tal que p ≡ 3 (mod 4)
 func generateSafePrime(bits int) *big.Int {
 	three := big.NewInt(3)
 	four := big.NewInt(4)
 
 	for {
-		// Gerar um número primo aleatório com o tamanho especificado
+		// Gera um numero primo aleatorio com o tamanho especificado
 		p, err := rand.Prime(rand.Reader, bits)
 		if err != nil {
 			// Fallback se rand.Prime falhar
 			p = generateFallbackPrime(bits)
 		}
 
-		// Verificar se p ≡ 3 (mod 4)
+		// Verifica se p ≡ 3 (mod 4)
 		if new(big.Int).Mod(p, four).Cmp(three) == 0 {
 			return p
 		}
 	}
 }
 
-// generateFallbackPrime gera um número primo quando rand.Prime falha
-// Nota: Este é um método simplificado e não deve ser usado em produção
+// generateFallbackPrime gera um numero primo quando rand.Prime falha
 func generateFallbackPrime(bits int) *big.Int {
-	// Iniciar com um número ímpar aleatório
+	// Inicia com um numero impar aleatorio
 	candidate := big.NewInt(0)
 	max := new(big.Int).Lsh(big.NewInt(1), uint(bits))
 
 	for {
-		// Gerar um número aleatório
+		// Gera um numero aleatório
 		t := time.Now().UnixNano()
 		candidate.SetInt64(t)
 		candidate.Mod(candidate, max)
 
-		// Garantir que é ímpar
+		// Garante que eh impar
 		if candidate.Bit(0) == 0 {
 			candidate.Add(candidate, big.NewInt(1))
 		}
 
-		// Garantir que é congruente a 3 mod 4
+		// Garante que eh congruente a 3 mod 4
 		if new(big.Int).Mod(candidate, big.NewInt(4)).Cmp(big.NewInt(3)) != 0 {
 			candidate.Add(candidate, big.NewInt(2))
 		}
 
-		// Verificar se é provavelmente primo
+		// Verifica se eh provavelmente primo
 		if candidate.ProbablyPrime(20) {
 			return candidate
 		}
 
-		// Tentar o próximo número congruente a 3 mod 4
+		// Tenta o proximo numero congruente a 3 mod 4
 		candidate.Add(candidate, big.NewInt(4))
-		time.Sleep(time.Nanosecond) // Variar o timestamp
+		time.Sleep(time.Nanosecond) // Varia o timestamp
 	}
 }
 
@@ -105,7 +107,7 @@ func generateSeed(n *big.Int) *big.Int {
 	one := big.NewInt(1)
 
 	for {
-		// Gerar um número aleatório entre 2 e n-1
+		// Gera um numero aleatorio entre 2 e n-1
 		seed, err := rand.Int(rand.Reader, new(big.Int).Sub(n, big.NewInt(2)))
 		if err != nil {
 			// Fallback se rand.Int falhar
@@ -114,44 +116,44 @@ func generateSeed(n *big.Int) *big.Int {
 			seed.Mod(seed, n)
 		}
 
-		seed.Add(seed, big.NewInt(2)) // Agora seed está entre 2 e n-1
+		seed.Add(seed, big.NewInt(2)) // Agora seed estah entre 2 e n-1
 
-		// Verificar se o seed é coprimo com n usando GCD
+		// Verifica se o seed eh coprimo com n usando GCD
 		gcd := new(big.Int).GCD(nil, nil, seed, n)
 
 		if gcd.Cmp(one) == 0 {
-			// Calcular x_0 = seed^2 mod n para iniciar a sequência
+			// Calcula x_0 = seed^2 mod n para iniciar a sequencia
 			x0 := new(big.Int).Exp(seed, big.NewInt(2), n)
 			return x0
 		}
 	}
 }
 
-// NextState calcula o próximo estado x_(i+1) = x_i^2 mod n
+// NextState calcula o proximo estado x_(i+1) = x_i^2 mod n
 func (bbs *BlumBlumShub) NextState() *big.Int {
 	// x_(i+1) = x_i^2 mod n
 	bbs.state = new(big.Int).Exp(bbs.state, big.NewInt(2), bbs.n)
 	return new(big.Int).Set(bbs.state)
 }
 
-// NextBit gera o próximo bit (o bit de paridade do estado)
+// NextBit gera o proximo bit (o bit de paridade do estado)
 func (bbs *BlumBlumShub) NextBit() uint {
 	// Atualizar o estado
 	bbs.NextState()
 
-	// Retornar o bit de paridade (LSB)
+	// Retorna o bit de paridade (LSB)
 	return bbs.state.Bit(0)
 }
 
-// Next gera um número pseudoaleatório com o tamanho aproximado de bitSize
+// Next gera um numero pseudoaleatorio com o tamanho aproximado de bitSize
 func (bbs *BlumBlumShub) Next() *big.Int {
 	result := big.NewInt(0)
 
-	// Gerar bitSize bits para formar o número
+	// Gera bitSize bits para formar o número
 	for i := 0; i < bbs.bitSize; i++ {
 		bit := bbs.NextBit()
 
-		// Deslocar o resultado e adicionar o novo bit
+		// Desloca o resultado e adicionar o novo bit
 		result.Lsh(result, 1)
 		if bit == 1 {
 			result.Or(result, big.NewInt(1))
@@ -172,28 +174,21 @@ func Bbs() ([]int, []*big.Int) {
 	for i, bits := range bitSizes {
 		fmt.Printf("\nGerando número de %d bits:\n", bits)
 
-		// Criar um novo gerador para cada tamanho de bits
+		// Criamos um novo gerador para cada tamanho de bits
 		fmt.Printf("- Gerando primos p e q (isso pode levar alguns instantes)...\n")
 		init_time := time.Now()
 		bbs := NewBBS(bits)
 		elapsed_time := time.Since(init_time)
 		fmt.Printf("- Tempo de geração: %s\n", elapsed_time)
 
-		// Mostrar informações sobre o módulo n
+		// Mostrando info sobre o modulo n
 		fmt.Printf("- Módulo n gerado com %d bits\n", bbs.n.BitLen())
-
-		// Gerar o número para demonstração
 		fmt.Printf("- Gerando bits aleatórios...\n")
 		randomNum := bbs.Next()
 
-		// Exibir o tamanho real em bits
 		bitLength := randomNum.BitLen()
 		fmt.Printf("- Tamanho real: %d bits\n", bitLength)
-
-		// Exibir a representação decimal
 		fmt.Printf("- Valor decimal: %s\n", randomNum.String())
-
-		// Exibir parcialmente a representação binária
 		fmt.Printf("- Representação binária: %s\n", randomNum.Text(2))
 
 		generatedNumbers[i] = randomNum

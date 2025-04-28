@@ -1,3 +1,6 @@
+// Esse arquivo traz a implementacao do Teste de Miller-Rabin
+//  para verificar a primalidade e gerar numeros numero primos grandes.
+
 package pta
 
 import (
@@ -6,8 +9,6 @@ import (
 	"math/big"
 	"time"
 )
-
-// ======= Implementação do Miller-Rabin =======
 
 // MillerRabinTest verifica se um numero eh provavelmente primo
 // usando o teste de primalidade de Miller-Rabin
@@ -43,7 +44,6 @@ func MillerRabinTest(n *big.Int, k int) bool {
 
 // millerRabinIteration realiza uma unica iteracao do teste
 func millerRabinIteration(n, d *big.Int, r int) bool {
-	// Escolhe um numero aleatorio a entre [2, n-2]
 	nMinus2 := new(big.Int).Sub(n, big.NewInt(2))
 	a, err := rand.Int(rand.Reader, nMinus2)
 	if err != nil {

@@ -1,3 +1,6 @@
+// Esse arquivo traz a implementacao do Teste de Primalidade de Fermat
+//  para verificar a primalidade e gerar numeros numero primos grandes.
+
 package pta
 
 import (
@@ -7,13 +10,11 @@ import (
 	"time"
 )
 
-// ======= Implementação do Fermat =======
-
-// FermatTest verifica se um número é provavelmente primo
-// usando o teste de primalidade de Fermat
-// k é o número de iterações para aumentar a confiabilidade
+// FermatTest verifica se um numero eh provavelmente primo
+// usando o teste de primalidade de Fermat.
+// k eh o numero de iteracoes para aumentar a confiabilidade
 func FermatTest(n *big.Int, k int) bool {
-	// Casos especiais
+	// Tratamento de casos especiais
 	if n.Cmp(big.NewInt(2)) == 0 || n.Cmp(big.NewInt(3)) == 0 {
 		return true
 	}
@@ -25,19 +26,18 @@ func FermatTest(n *big.Int, k int) bool {
 	nMinus1 := new(big.Int).Sub(n, one)
 
 	for i := 0; i < k; i++ {
-		// Escolher um número aleatório a entre [2, n-2]
 		nMinus2 := new(big.Int).Sub(n, big.NewInt(2))
 		a, err := rand.Int(rand.Reader, nMinus2)
 		if err != nil {
 			t := time.Now().UnixNano()
 			a = big.NewInt(t % nMinus2.Int64())
 		}
-		a.Add(a, big.NewInt(2)) // Garantir que a >= 2
+		a.Add(a, big.NewInt(2)) // Garante que a >= 2
 
-		// Calcular a^(n-1) mod n
+		// Calculamos a^(n-1) mod n
 		result := new(big.Int).Exp(a, nMinus1, n)
 
-		// Se resultado != 1, então definitivamente composto
+		// Se o resultado != 1, entao definitivamente  eh composto
 		if result.Cmp(one) != 0 {
 			return false
 		}
@@ -46,7 +46,8 @@ func FermatTest(n *big.Int, k int) bool {
 	return true // Provavelmente primo
 }
 
-// ======= Funções para gerar números primos usando Fermat =======
+// GeneratePrimeNumberFermat gera um numero primo com o tamanho de bits especificado
+// usando o Teste de Primalidade de Fermat.
 func GeneratePrimeNumberFemart(bits int, candidato *big.Int) (*big.Int, int) {
 	tentativas := 0
 	for {
@@ -76,7 +77,7 @@ func GeneratePrimeNumberFemart(bits int, candidato *big.Int) (*big.Int, int) {
 	}
 }
 
-// ======= Função principal para Fermat =======
+// ======= Funcao chamada externamente =======
 func Fermat(candidate *big.Int, bits int) *big.Int {
 	fmt.Println("\nGerando número primo usando Fermat")
 	fmt.Println("===================================")
