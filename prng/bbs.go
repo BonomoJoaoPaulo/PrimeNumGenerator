@@ -163,7 +163,7 @@ func (bbs *BlumBlumShub) Next() *big.Int {
 
 func Bbs() ([]int, []*big.Int) {
 	// Tamanhos de bits para testar
-	bitSizes := []int{40, 56, 80, 128, 168, 224, 256, 512, 1024, 2048} // Removido 4096 pois a geração de primos seria muito lenta
+	bitSizes := []int{40, 56, 80, 128, 168, 224, 256, 512, 1024, 2048, 4096}
 	generatedNumbers := make([]*big.Int, len(bitSizes))
 
 	fmt.Println("Gerando números pseudoaleatórios com Blum Blum Shub")

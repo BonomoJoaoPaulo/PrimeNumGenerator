@@ -154,8 +154,13 @@ func Lfg() ([]int, []*big.Int) {
 			lfg.Next()
 		}
 
+		startTime := time.Now()
+
 		// Geramos o numero
 		randomNum := lfg.Next()
+
+		elapsedTime := time.Since(startTime)
+		fmt.Printf("- Tempo de geração: %s\n", elapsedTime)
 
 		// Exibimos o tamanho real em bits do numero gerado
 		bitLength := randomNum.BitLen()
